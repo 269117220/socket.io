@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>socketIo</title>
+    <style type="text/css">
+    #join {
+      padding:10px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 15px;
+      background-color: #ccc;
+    }
+    </style>
+</head>
+
+<body>
+    <h3 style="display:inline-block;">系统总在线人数：<span id="num"></span></h3>
+    <div style="display:inline-block;margin-left:70%">
+        <h3>你好：<span id="name"></span></h3>
+    </div>
+    <h3 id="privateInfo">当前房间人数：<span id="curr_num"></span></h3>
+    <br/>
+    <h5 style="text-align:center">系统信息：<span id="system">欢迎您！</span></h5>
+    <br/>
+    <button id="join">进入房间</button>
+    <br/>
+    
+    <div id="allDiv" style="display:inline-block;width:45%;float:left">
+        公共大厅:
+        <div id="allHistory" style="width:400px;height:200px;background-color:grey;margin:auto"></div>
+        广播&emsp;&emsp;
+        <input type="text" id="toAllInfo" placeholder="enter info" autofocus>&emsp;
+        <button id="sentAll">sent to All</button>
+    </div>
+    <br/>
+    <div id="privateDiv" style="display:inline-block;width:45%;float:left">
+    私密房间：
+        <div id="roomHistory" style="width:400px;height:200px;background-color:grey;margin:auto">
+        </div>
+        <div>专属房间:<span id="roomName"></span>&emsp;&emsp;
+            <input type="text" id="toRoomInfo" placeholder="enter info">&emsp;
+            <button id="sentRoom">sent to room</button>
+        </div>
+    </div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var nameNode = document.getElementById("name");
+var joinNode = document.getElementById("join");
+var numNode = document.getElementById("num");
+var systemNode = document.getElementById("system");
+var currNumNode = document.getElementById("curr_num");
+var toAllInfoNode = document.getElementById("toAllInfo");
+var toRoomInfoNode = document.getElementById("toRoomInfo");
+var sentAllNode = document.getElementById("sentAll");
+var sentRoomNode = document.getElementById("sentRoom");
+var roomNameNode = document.getElementById("roomName");
+var allHistoryNode = document.getElementById("allHistory");
+var allDivNode = document.getElementById("allDiv");
+var privateDivNode = document.getElementById("privateDiv");
+var privateInfoNode = document.getElementById("privateInfo");
+privateDivNode.style.display = "none";
+privateInfo.style.display = "none";
+
+
+
+var socket = io.connect();
+socket.on('connect', function() {
+    // console.log(new Date().getTime());
+    // socket.send();
+});
+socket.on('message', function(data) {
+    console.log(data);
+    nameNode.innerHTML = data;
+});
+socket.on('num', function(data) {
+    console.log(data);
+    numNode.innerHTML = data;
+});
+socket.on('system', function(data) {
+
+    systemNode.innerHTML = data;
+});
+socket.on('joinSuccess', function(data) {
+    privateDivNode.style.display = "block";
+    privateInfo.style.display = "block";
+    systemNode.innerHTML = data.info + " 加入房间";
+    currNumNode.innerHTML = data.num;
+    roomNameNode.innerHTML = data.room;
+});
+socket.on('showAllInfo', function(data) {
+    var itemInfo = document.createElement('span');
+    itemInfo.style.display = "block";
+    itemInfo.innerHTML = data;
+    allHistoryNode.appendChild(itemInfo);
+});
+socket.on('showRoomInfo', function(data) {
+    console.error(data);
+    var itemInfo = document.createElement('span');
+    itemInfo.style.display = "block";
+    itemInfo.innerHTML = data;
+    roomHistory.appendChild(itemInfo);
+});
+
+
+joinNode.addEventListener("click", function() {
+    socket.emit("join");
+});
+sentAllNode.addEventListener("click", function() {
+    var text = toAllInfoNode.value;
+    if (!text.trim())
+        return;
+    socket.emit("sentAll", text);
+});
+sentRoomNode.addEventListener("click", function() {
+    var text = toRoomInfoNode.value;
+    if (!text.trim())
+        return;
+    console.log(text);
+    socket.emit("sentRoom", text);
+});
+</script>
+
+</html>
